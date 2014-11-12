@@ -7,6 +7,10 @@
       "version": "1.2.0",
       "resolved": "https://registry.npmjs.org/binary-search/-/binary-search-1.2.0.tgz"
     },
+    "bluebird": {
+      "version": "2.3.11",
+      "resolved": "https://registry.npmjs.org/bluebird/-/bluebird-2.3.11.tgz"
+    },
     "body-parser": {
       "version": "1.9.2",
       "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-1.9.2.tgz",
@@ -2638,8 +2642,8 @@
               }
             },
             "chokidar": {
-              "version": "0.10.5",
-              "resolved": "https://registry.npmjs.org/chokidar/-/chokidar-0.10.5.tgz",
+              "version": "0.10.6",
+              "resolved": "https://registry.npmjs.org/chokidar/-/chokidar-0.10.6.tgz",
               "dependencies": {
                 "async-each": {
                   "version": "0.1.6",
