@@ -611,5 +611,22 @@ exports.bootlint = {
             'should not complain about .media-left or .media-right classes'
         );
         test.done();
+    },
+
+    'outdated version of Bootstrap': function (test) {
+        test.expect(4);
+        test.deepEqual(lintHtml(utf8Fixture('outdated/bootstrap-css.html')),
+            ['Bootstrap version might be outdated. Latest version is at least 3.3.1 ; saw what appears to be usage of Bootstrap 3.2.0'],
+            'should complain about outdated bootstrap.css.');
+        test.deepEqual(lintHtml(utf8Fixture('outdated/bootstrap-min-css.html')),
+            ['Bootstrap version might be outdated. Latest version is at least 3.3.1 ; saw what appears to be usage of Bootstrap 3.2.0'],
+            'should complain about outdated bootstrap.min.css.');
+        test.deepEqual(lintHtml(utf8Fixture('outdated/bootstrap-js.html')),
+            ['Bootstrap version might be outdated. Latest version is at least 3.3.1 ; saw what appears to be usage of Bootstrap 3.2.0'],
+            'should complain about outdated bootstrap.js.');
+        test.deepEqual(lintHtml(utf8Fixture('outdated/bootstrap-min-js.html')),
+            ['Bootstrap version might be outdated. Latest version is at least 3.3.1 ; saw what appears to be usage of Bootstrap 3.2.0'],
+            'should complain about outdated bootstrap.min.js.');
+        test.done();
     }
 };
