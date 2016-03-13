@@ -1,4 +1,5 @@
 /*eslint-env node */
+/*eslint no-process-env: 0 */
 
 'use strict';
 
@@ -83,10 +84,13 @@ exports.bootlint = {
         test.done();
     },
     'X-UA-Compatible': function (test) {
-        test.expect(2);
+        test.expect(3);
         test.deepEqual(lintHtml(utf8Fixture('x-ua-compatible/present.html')),
             [],
             'should not complain when X-UA-Compatible <meta> tag is present.');
+        test.deepEqual(lintHtml(utf8Fixture('x-ua-compatible/lowercase.html')),
+            [],
+            'should not complain when X-UA-Compatible <meta> tag is present but lowercased.');
         test.deepEqual(lintHtml(utf8Fixture('x-ua-compatible/missing.html')),
             ["`<head>` is missing X-UA-Compatible `<meta>` tag that disables old IE compatibility modes"],
             'should complain when X-UA-Compatible <meta> tag is missing.');
@@ -175,7 +179,7 @@ exports.bootlint = {
         test.done();
     },
     'jQuery': function (test) {
-        test.expect(4);
+        test.expect(5);
         test.deepEqual(lintHtml(utf8Fixture('jquery/present.html')),
             [],
             'should not complain when jQuery is present.');
@@ -187,7 +191,10 @@ exports.bootlint = {
             'should complain about old version of jQuery based on URL');
         test.deepEqual(lintHtml(utf8Fixture('jquery/missing.html')),
             ["Unable to locate jQuery, which is required for Bootstrap's JavaScript plugins to work"],
-            'should complain when jQuery appears to be missing.');
+            "should complain when jQuery appears to be missing.");
+        test.deepEqual(lintHtml(utf8Fixture('jquery/and_bs_js_both_missing.html')),
+            ["Unable to locate jQuery, which is required for Bootstrap's JavaScript plugins to work; however, you might not be using Bootstrap's JavaScript"],
+            "should complain differently when jQuery appears to be missing but Bootstrap's JS is also missing.");
         test.done();
     },
     'bootstrap[.min].js': function (test) {
@@ -222,16 +229,19 @@ exports.bootlint = {
     'tooltips and popovers on disabled elements': function (test) {
         test.expect(1);
         test.deepEqual(lintHtml(utf8Fixture('tooltips/on-disabled-elems.html')),
-            ["Tooltips and popovers on disabled elements cannot be triggered by user interaction unless the element becomes enabled." +
-            " To have tooltips and popovers be triggerable by the user even when their associated element is disabled," +
-            " put the disabled element inside a wrapper `<div>` and apply the tooltip or popover to the wrapper `<div>` instead."],
+            [
+                "Tooltips and popovers on disabled elements cannot be triggered by user interaction unless the element becomes enabled." +
+                " To have tooltips and popovers be triggerable by the user even when their associated element is disabled," +
+                " put the disabled element inside a wrapper `<div>` and apply the tooltip or popover to the wrapper `<div>` instead.",
+                'Using the `.disabled` class on a `<button>` or `<input>` only changes the appearance of the element. It doesn\'t prevent the user from interacting with the element (for example, clicking on it or focusing it). If you want to truly disable the element, use the `disabled` attribute instead.'
+            ],
             'should complain about tooltips and popovers on disabled elements.');
         test.done();
     },
     'tooltips and popovers within button groups should have their container set to body': function (test) {
         test.expect(1);
         test.deepEqual(lintHtml(utf8Fixture('tooltips/in-btn-groups.html')),
-            ["Tooltips and popovers within button groups should have their `container` set to 'body'. Found tooltips/popovers that might lack this setting."],
+            ["Tooltips and popovers within button groups should have their `container` set to `'body'`. Found tooltips/popovers that might lack this setting."],
             'should complain when `data-*`-based tooltips or popovers lack `data-container="body"`.');
         test.done();
     },
@@ -263,6 +273,16 @@ exports.bootlint = {
             'should complain when an input group has a grid column class on it.');
         test.done();
     },
+    'input groups missing controls and addons': function (test) {
+        test.expect(2);
+        test.deepEqual(lintHtml(utf8Fixture('input-group/missing-input-group-addon.html')),
+            ["`.input-group` must have a `.form-control` and either an `.input-group-addon` or an `.input-group-btn`."],
+            'should complain when missing missing a `.form-control`');
+        test.deepEqual(lintHtml(utf8Fixture('input-group/missing-form-control.html')),
+            ["`.input-group` must have a `.form-control` and either an `.input-group-addon` or an `.input-group-btn`."],
+            'should complain when missing missing a `.input-group-addon`');
+        test.done();
+    },
     'non-column children of rows': function (test) {
         test.expect(2);
         test.deepEqual(lintHtml(utf8Fixture('grid/non-col-row-children.html')),
@@ -292,16 +312,6 @@ exports.bootlint = {
             'should complain when both a normal add-on and a button add-on are on the left side of an input group.');
         test.done();
     },
-    'multiple buttons/dropdowns inside input-group-btn': function (test) {
-        test.expect(2);
-        test.deepEqual(lintHtml(utf8Fixture('input-group/multiple-btns-group.html')),
-            ["Having multiple `.btn`s inside of a single `.input-group-btn` is not supported"],
-            'should complain about multiple buttons being inside a single input-group-btn');
-        test.deepEqual(lintHtml(utf8Fixture('input-group/multiple-dropdowns-in-group.html')),
-            ["Having multiple `.dropdown-menu`s inside of a single `.input-group-btn` is not supported"],
-            'should complain about multiple dropdowns being inside a single input-group-btn');
-        test.done();
-    },
     'dropdown-toggle comes before btn': function (test) {
         test.expect(2);
         test.deepEqual(lintHtml(utf8Fixture('buttons/btn-toggle.html')),
@@ -320,6 +330,29 @@ exports.bootlint = {
         test.deepEqual(lintHtml(utf8Fixture('buttons/with-type.html')),
             [],
             'should not complain when type is set on buttons');
+        test.done();
+    },
+    'use disabled attribute on button.btn and input.btn instead of .disabled': function (test) {
+        test.expect(3);
+        test.deepEqual(lintHtml(utf8Fixture('buttons/button-disabled-class.html')),
+            ["Using the `.disabled` class on a `<button>` or `<input>` only changes the appearance of the element. It doesn't prevent the user from interacting with the element (for example, clicking on it or focusing it). If you want to truly disable the element, use the `disabled` attribute instead."],
+            'should complain when Bootstrap v2 grid classes are present.');
+        test.deepEqual(lintHtml(utf8Fixture('buttons/input-btn-disabled-class.html')),
+            ["Using the `.disabled` class on a `<button>` or `<input>` only changes the appearance of the element. It doesn't prevent the user from interacting with the element (for example, clicking on it or focusing it). If you want to truly disable the element, use the `disabled` attribute instead."],
+            'should complain when Bootstrap v2 grid classes are present.');
+        test.deepEqual(lintHtml(utf8Fixture('buttons/disabled-attribute.html')),
+            [],
+            'should not complain when disabled attribute is set on buttons');
+        test.done();
+    },
+    'inputs should set type': function (test) {
+        test.expect(2);
+        test.deepEqual(lintHtml(utf8Fixture('form-control/without-type.html')),
+            ["Found one or more `<input>`s missing a `type` attribute."],
+            'should complain about lack of type attribute on inputs');
+        test.deepEqual(lintHtml(utf8Fixture('form-control/with-type.html')),
+            [],
+            'should not complain when type is set on inputs');
         test.done();
     },
     'incorrect markup for .checkbox, .radio, .checkbox-inline, and .radio-inline classes': function (test) {
@@ -448,7 +481,7 @@ exports.bootlint = {
     },
 
     'empty spacer grid columns': function (test) {
-        test.expect(9);
+        test.expect(10);
         test.deepEqual(lintHtml(utf8Fixture('grid/spacer-col/blank-text.html')),
             ['Using empty spacer columns isn\'t necessary with Bootstrap\'s grid. So instead of having an empty grid column with `class="col-xs-11"` , just add `class="col-xs-offset-11"` to the next grid column.'],
             'should complain when spacer column contains only whitespace text content.'
@@ -484,6 +517,10 @@ exports.bootlint = {
         test.deepEqual(lintHtml(utf8Fixture('grid/spacer-col/multiple-reversed-order.html')),
             ['Using empty spacer columns isn\'t necessary with Bootstrap\'s grid. So instead of having an empty grid column with `class="col-xs-11 col-sm-8 col-md-6 col-lg-5"` , just add `class="col-xs-offset-11 col-sm-offset-8 col-md-offset-6 col-lg-offset-5"` to the next grid column.'],
             'should sort the grid classes in its message and handle multiple grid classes correctly.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('grid/spacer-col/void-elements.html')),
+            [],
+            'should ignore void elements.'
         );
         test.done();
     },
@@ -608,7 +645,7 @@ exports.bootlint = {
 
     'pull classes inside media': function (test) {
         test.expect(2);
-        test.deepEqual(lintHtml(utf8Fixture('media/pull-classes.html')),
+        test.deepEqual(lintHtml(utf8Fixture('media/deprecated-pull-classes.html')),
             ['Using `.pull-left` or `.pull-right` as part of the media object component is deprecated as of Bootstrap v3.3.0. Use `.media-left` or `.media-right` instead.'],
             'should complain about .pull-* classes in .media'
         );
@@ -648,6 +685,266 @@ exports.bootlint = {
                 'Column widths must be positive integers (and <= 12 by default). Found usage(s) of invalid nonexistent `.col-*-0` classes.'
             ],
             'should complain about usage of .col-lg-0 class.'
+        );
+        test.done();
+    },
+
+    'outdated version of Bootstrap': function (test) {
+        test.expect(5);
+        test.deepEqual(lintHtml(utf8Fixture('outdated/bootstrap-css.html')),
+            ['Bootstrap version might be outdated. Latest version is at least 3.3.6 ; saw what appears to be usage of Bootstrap 3.2.0'],
+            'should complain about outdated bootstrap.css.');
+        test.deepEqual(lintHtml(utf8Fixture('outdated/bootstrap-min-css.html')),
+            ['Bootstrap version might be outdated. Latest version is at least 3.3.6 ; saw what appears to be usage of Bootstrap 3.2.0'],
+            'should complain about outdated bootstrap.min.css.');
+        test.deepEqual(lintHtml(utf8Fixture('outdated/bootstrap-js.html')),
+            ['Bootstrap version might be outdated. Latest version is at least 3.3.6 ; saw what appears to be usage of Bootstrap 3.2.0'],
+            'should complain about outdated bootstrap.js.');
+        test.deepEqual(lintHtml(utf8Fixture('outdated/bootstrap-min-js.html')),
+            ['Bootstrap version might be outdated. Latest version is at least 3.3.6 ; saw what appears to be usage of Bootstrap 3.2.0'],
+            'should complain about outdated bootstrap.min.js.');
+        test.deepEqual(lintHtml(utf8Fixture('outdated/bootstrap-extensions-okay.html')),
+            [],
+            'should not complain about outdated libraries that just have "bootstrap" in their name.');
+        test.done();
+    },
+
+    'version 4 of Bootstrap': function (test) {
+        test.expect(5);
+        test.deepEqual(lintHtml(utf8Fixture('version-4/bootstrap-css.html')),
+            ['Detected what appears to be Bootstrap v4 or later. This version of Bootlint only supports Bootstrap v3.'],
+            'should complain about version 4 of bootstrap.css.');
+        test.deepEqual(lintHtml(utf8Fixture('version-4/bootstrap-min-css.html')),
+            ['Detected what appears to be Bootstrap v4 or later. This version of Bootlint only supports Bootstrap v3.'],
+            'should complain about version 4 of bootstrap.min.css.');
+        test.deepEqual(lintHtml(utf8Fixture('version-4/bootstrap-js.html')),
+            ['Detected what appears to be Bootstrap v4 or later. This version of Bootlint only supports Bootstrap v3.'],
+            'should complain about version 4 of bootstrap.js.');
+        test.deepEqual(lintHtml(utf8Fixture('version-4/bootstrap-min-js.html')),
+            ['Detected what appears to be Bootstrap v4 or later. This version of Bootlint only supports Bootstrap v3.'],
+            'should complain about version 4 of bootstrap.min.js.');
+        test.deepEqual(lintHtml(utf8Fixture('version-4/bootstrap-extensions-okay.html')),
+            [],
+            'should not complain about v4.0.0+ libraries that just have "bootstrap" in their name.');
+        test.done();
+    },
+
+    'carousel control target': function (test) {
+        test.expect(3);
+        test.deepEqual(lintHtml(utf8Fixture('carousel/indicators.html')),
+            [
+                'Carousel controls and indicators should use `href` or `data-target` to reference an element with class `.carousel`.'
+            ],
+            'should complain about incorrect indicator control targets.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('carousel/controls.html')),
+            [
+                'Carousel controls and indicators should use `href` or `data-target` to reference an element with class `.carousel`.'
+            ],
+            'should complain about incorrect indicator control targets.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('carousel/valid.html')),
+            [],
+            'should not complain about correct indicator control targets.'
+        );
+        test.done();
+    },
+
+    'media pulls outside of media objects': function (test) {
+        test.expect(4);
+        test.deepEqual(lintHtml(utf8Fixture('media/media-classes.html')),
+            [],
+            'should not complain about media pulls inside media objects.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('media/misplaced-media-left.html')),
+            ['`.media-left` and `.media-right` should not be used outside of `.media` objects.'],
+            'should complain about .media-left outside of a media object.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('media/misplaced-media-right.html')),
+            ['`.media-left` and `.media-right` should not be used outside of `.media` objects.'],
+            'should complain about .media-right outside of a media object.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('media/media-pull-on-media.html')),
+            ['`.media-left` and `.media-right` should not be used outside of `.media` objects.'],
+            'should complain about media pulls on .media itself.'
+        );
+        test.done();
+    },
+
+    'navbar pulls outside of navbars': function (test) {
+        test.expect(4);
+        test.deepEqual(lintHtml(utf8Fixture('navbar/navbar-left-bad.html')),
+            ['`.navbar-left` and `.navbar-right` should not be used outside of navbars.'],
+            'should complain about .navbar-left outside of .navbar.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('navbar/navbar-right-bad.html')),
+            ['`.navbar-left` and `.navbar-right` should not be used outside of navbars.'],
+            'should complain about .navbar-right outside of .navbar.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('navbar/navbar-left-right-on-navbar.html')),
+            ['`.navbar-left` and `.navbar-right` should not be used outside of navbars.'],
+            'should complain about .navbar-left/right directly on a .navbar.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('navbar/navbar-left-right-valid.html')),
+            [],
+            'should not complain about .navbar-left or .navbar-right inside of .navbar.'
+        );
+        test.done();
+    },
+
+    'modal with .hide class': function (test) {
+        test.expect(2);
+        test.deepEqual(lintHtml(utf8Fixture('modal/with-hide.html')),
+            ['`.hide` should not be used on `.modal` in Bootstrap v3.'],
+            'should complain about a modal with the .hide class.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('modal/valid.html')),
+            [],
+            'should not complain about a modal without the .hide class.'
+        );
+        test.done();
+    },
+
+    'carousel structure': function (test) {
+        test.expect(5);
+        test.deepEqual(lintHtml(utf8Fixture('carousel/valid.html')),
+            [],
+            'should not complain about correctly structured carousels.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('carousel/missing-inner.html')),
+            ['`.carousel` must have exactly one `.carousel-inner` child.'],
+            'should complain about a carousel without a .carousel-inner.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('carousel/multiple-inner.html')),
+            ['`.carousel` must have exactly one `.carousel-inner` child.'],
+            'should complain about a carousel with multiple .carousel-inner children.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('carousel/missing-active-item.html')),
+            ['`.carousel-inner` must have exactly one `.item.active` child.'],
+            'should complain about a carousel without an active item.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('carousel/multiple-active-item.html')),
+            ['`.carousel-inner` must have exactly one `.item.active` child.'],
+            'should complain about a carousel with multiple active items.'
+        );
+        test.done();
+    },
+
+    'container inside navbar': function (test) {
+        test.expect(1);
+        test.deepEqual(lintHtml(utf8Fixture('navbar/navbar-container.html')),
+            ["`.navbar`'s first child element should always be either `.container` or `.container-fluid`"],
+            'should complain about no .container/.container-fluid inside .navbar.'
+        );
+        test.done();
+    },
+
+    '.form-control on wrong element or input type': function (test) {
+        test.expect(11);
+        test.deepEqual(lintHtml(utf8Fixture('form-control/span-invalid.html')),
+            ['`.form-control` should only be used on `<input>`s, `<textarea>`s, and `<select>`s.'],
+            'should complain about .form-control on <span>.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/type-button.html')),
+            ['`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`'],
+            'should complain about .form-control on <input type="button">.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/type-checkbox.html')),
+            ['`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`'],
+            'should complain about .form-control on <input type="checkbox">.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/type-file.html')),
+            ['`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`'],
+            'should complain about .form-control on <input type="file">.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/type-hidden.html')),
+            ['`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`'],
+            'should complain about .form-control on <input type="hidden">.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/type-image.html')),
+            ['`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`'],
+            'should complain about .form-control on <input type="image">.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/type-radio.html')),
+            ['`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`'],
+            'should complain about .form-control on <input type="radio">.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/type-range.html')),
+            ['`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`'],
+            'should complain about .form-control on <input type="range">.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/type-reset.html')),
+            ['`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`'],
+            'should complain about .form-control on <input type="reset">.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/type-submit.html')),
+            ['`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`'],
+            'should complain about .form-control on <input type="submit">.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('form-control/valid.html')),
+            [],
+            'should not complain about usage of .form-control on valid elements and input types.'
+        );
+        test.done();
+    },
+
+    '.img-responsive not on image': function (test) {
+        test.expect(2);
+        test.deepEqual(lintHtml(utf8Fixture('images/img-responsive-bad.html')),
+            ['`.img-responsive` should only be used on `<img>`s'],
+            'should complain about .img-responsive not on an image.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('images/img-responsive-valid.html')),
+            [],
+            'should not complain about .img-responsive on an image.'
+        );
+        test.done();
+    },
+    'btn classes on anchors within .navbar-nav': function (test) {
+        test.expect(2);
+        test.deepEqual(lintHtml(utf8Fixture('navbar/btn-bad.html')),
+            ['Button classes (`.btn`, `.btn-*`, `.navbar-btn`) cannot be used on `<a>`s within `.navbar-nav`s.'],
+            'should complain about a .btn within the .navbar-nav class.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('navbar/navbar-btn-bad.html')),
+            ['Button classes (`.btn`, `.btn-*`, `.navbar-btn`) cannot be used on `<a>`s within `.navbar-nav`s.'],
+            'should complain about a .navbar-btn within the .navbar-nav class.'
+        );
+        test.done();
+    },
+    'modal missing tabindex': function (test) {
+        test.expect(1);
+        test.deepEqual(lintHtml(utf8Fixture('modal/tabindex-missing.html')),
+            ['`.modal` elements must have a `tabindex` attribute.'],
+            'should complain about modal missing a `tabindex` attribute.'
+        );
+        test.done();
+    },
+    '.btn not on <a>/<button>/<input>/<label>': function (test) {
+        test.expect(2);
+        test.deepEqual(lintHtml(utf8Fixture('buttons/btn-incorrect-element.html')),
+            ['`.btn` should only be used on `<a>`, `<button>`, `<input>`, or `<label>` elements.'],
+            'should complain about .btn on a non-<a>/<button>/<input>/<label>.'
+        );
+        test.deepEqual(lintHtml(utf8Fixture('buttons/btn-correct-element.html')),
+            [],
+            'should not complain about `.btn` on an <a>, <button>, <input>, or <label>.'
+        );
+        test.done();
+    },
+    'modal missing role dialog': function (test) {
+        test.expect(1);
+        test.deepEqual(lintHtml(utf8Fixture('modal/missing-role-dialog.html')),
+            ['`.modal` must have a `role="dialog"` attribute.'],
+            'should complain about modal missing a `role` attribute.'
+        );
+        test.done();
+    },
+    'modal-dialog missing role document': function (test) {
+        test.expect(1);
+        test.deepEqual(lintHtml(utf8Fixture('modal/missing-role-document.html')),
+            ['`.modal-dialog` must have a `role="document"` attribute.'],
+            'should complain about modal-dialog missing a `role` attribute.'
         );
         test.done();
     }

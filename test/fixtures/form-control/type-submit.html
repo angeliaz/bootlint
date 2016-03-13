@@ -17,24 +17,13 @@
         <script src="../generic-qunit.js"></script>
     </head>
     <body>
-        <div class="input-group">
-            <input type="text" class="form-control" />
-            <span class="input-group-btn">
-                <button class="btn btn-default" type="button">Harder!</button>
-                <ul class="dropdown-menu pull-right" role="menu">
-                    <li><a href="#">Option 1</a></li>
-                    <li><a href="#">Option 2</a></li>
-                    <li><a href="#">Option 3</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Option 4</a></li>
-                </ul>
-                <button class="btn btn-default" type="button">Work it!</button>
-            </span>
-        </div>
+        <form>
+            <input type="submit" value="Resistance Is Futile" class="form-control" />
+        </form>
 
         <div id="qunit"></div>
         <ol id="bootlint">
-            <li data-lint="Having multiple `.btn`s inside of a single `.input-group-btn` is not supported"></li>
+            <li data-lint="`.form-control` cannot be used on non-textual `<input>`s, such as those whose `type` is: `file`, `checkbox`, `radio`, `range`, `button`"></li>
         </ol>
     </body>
 </html>
